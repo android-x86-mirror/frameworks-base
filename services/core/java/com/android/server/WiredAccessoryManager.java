@@ -35,9 +35,11 @@ import com.android.server.input.InputManagerService.WiredAccessoryCallbacks;
 import static com.android.server.input.InputManagerService.SW_HEADPHONE_INSERT;
 import static com.android.server.input.InputManagerService.SW_MICROPHONE_INSERT;
 import static com.android.server.input.InputManagerService.SW_LINEOUT_INSERT;
+import static com.android.server.input.InputManagerService.SW_VIDEOOUT_INSERT;
 import static com.android.server.input.InputManagerService.SW_HEADPHONE_INSERT_BIT;
 import static com.android.server.input.InputManagerService.SW_MICROPHONE_INSERT_BIT;
 import static com.android.server.input.InputManagerService.SW_LINEOUT_INSERT_BIT;
+import static com.android.server.input.InputManagerService.SW_VIDEOOUT_INSERT_BIT;
 
 import java.io.File;
 import java.io.FileReader;
@@ -116,8 +118,11 @@ final class WiredAccessoryManager implements WiredAccessoryCallbacks {
             if (mInputManager.getSwitchState(-1, InputDevice.SOURCE_ANY, SW_LINEOUT_INSERT) == 1) {
                 switchValues |= SW_LINEOUT_INSERT_BIT;
             }
+            if (mInputManager.getSwitchState(-1, InputDevice.SOURCE_ANY, SW_VIDEOOUT_INSERT) == 1) {
+                switchValues |= SW_VIDEOOUT_INSERT_BIT;
+            }
             notifyWiredAccessoryChanged(0, switchValues,
-                    SW_HEADPHONE_INSERT_BIT | SW_MICROPHONE_INSERT_BIT | SW_LINEOUT_INSERT_BIT);
+                    SW_HEADPHONE_INSERT_BIT | SW_MICROPHONE_INSERT_BIT | SW_LINEOUT_INSERT_BIT | SW_VIDEOOUT_INSERT_BIT);
         }
 
         mObserver.init();
@@ -125,7 +130,7 @@ final class WiredAccessoryManager implements WiredAccessoryCallbacks {
 
     @Override
     public void notifyWiredAccessoryChanged(long whenNanos, int switchValues, int switchMask) {
-        if (LOG) Slog.v(TAG, "notifyWiredAccessoryChanged: when=" + whenNanos
+        if (LOG) Slog.i(TAG, "notifyWiredAccessoryChanged: when=" + whenNanos
                 + " bits=" + switchCodeToString(switchValues, switchMask)
                 + " mask=" + Integer.toHexString(switchMask));
 
@@ -133,7 +138,7 @@ final class WiredAccessoryManager implements WiredAccessoryCallbacks {
             int headset;
             mSwitchValues = (mSwitchValues & ~switchMask) | switchValues;
             switch (mSwitchValues &
-                (SW_HEADPHONE_INSERT_BIT | SW_MICROPHONE_INSERT_BIT | SW_LINEOUT_INSERT_BIT)) {
+                (SW_HEADPHONE_INSERT_BIT | SW_MICROPHONE_INSERT_BIT | SW_LINEOUT_INSERT_BIT | SW_VIDEOOUT_INSERT_BIT)) {
                 case 0:
                     headset = 0;
                     break;
@@ -144,6 +149,11 @@ final class WiredAccessoryManager implements WiredAccessoryCallbacks {
 
                 case SW_LINEOUT_INSERT_BIT:
                     headset = BIT_LINEOUT;
+                    break;
+
+                case SW_VIDEOOUT_INSERT_BIT:
+                case SW_VIDEOOUT_INSERT_BIT | SW_LINEOUT_INSERT_BIT:
+                    headset = BIT_HDMI_AUDIO;
                     break;
 
                 case SW_HEADPHONE_INSERT_BIT | SW_MICROPHONE_INSERT_BIT:
@@ -160,7 +170,7 @@ final class WiredAccessoryManager implements WiredAccessoryCallbacks {
             }
 
             updateLocked(NAME_H2W,
-                (mHeadsetState & ~(BIT_HEADSET | BIT_HEADSET_NO_MIC | BIT_LINEOUT)) | headset);
+                (mHeadsetState & ~(BIT_HEADSET | BIT_HEADSET_NO_MIC | BIT_LINEOUT | BIT_HDMI_AUDIO)) | headset);
         }
     }
 
@@ -290,7 +300,7 @@ final class WiredAccessoryManager implements WiredAccessoryCallbacks {
             }
 
             if (LOG) {
-                Slog.v(TAG, "headsetName: " + headsetName +
+                Slog.i(TAG, "headsetName: " + headsetName +
                         (state == 1 ? " connected" : " disconnected"));
             }
 
