@@ -1359,4 +1359,68 @@ public final class PowerManager {
             }
         }
     }
+
+    /**
+     * Boost the CPU. Boosts the cpu for the given duration in microseconds.
+     *
+     * @param duration in microseconds to boost the CPU
+     *
+     * @hide
+     */
+    public void cpuBoost(int duration)
+    {
+        try {
+            if (mService != null) {
+                mService.cpuBoost(duration);
+            }
+        } catch (RemoteException e) {
+        }
+    }
+
+    /**
+     * @hide
+     */
+    public void setKeyboardVisibility(boolean visible)
+    {
+        try {
+            if (mService != null) {
+                mService.setKeyboardVisibility(visible);
+            }
+        } catch (RemoteException e) {
+        }
+    }
+
+    /**
+     * sets the keyboard LED state
+     *
+     * @param on boolean state
+     * @param key 1 for caps, 2 for fn
+     *
+     * {@hide}
+     */
+    public void setKeyboardLight(boolean on, int key)
+    {
+        try {
+            mService.setKeyboardLight(on, key);
+        } catch (RemoteException e) {
+        }
+    }
+
+    /**
+     * Gets the default button brightness value.
+     * @hide
+     */
+    public int getDefaultButtonBrightness() {
+        return mContext.getResources().getInteger(
+                com.android.internal.R.integer.config_buttonBrightnessSettingDefault);
+    }
+
+    /**
+     * Gets the default keyboard brightness value.
+     * @hide
+     */
+    public int getDefaultKeyboardBrightness() {
+        return mContext.getResources().getInteger(
+                com.android.internal.R.integer.config_keyboardBrightnessSettingDefault);
+    }
 }

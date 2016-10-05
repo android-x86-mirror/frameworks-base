@@ -25,14 +25,11 @@ public class StatusBarIconList {
     private ArrayList<String> mSlots = new ArrayList<>();
     private ArrayList<StatusBarIcon> mIcons = new ArrayList<>();
 
-    public void defineSlots(String[] slots) {
-        mSlots.clear();
+    public StatusBarIconList(String[] slots) {
         final int N = slots.length;
         for (int i=0; i < N; i++) {
             mSlots.add(slots[i]);
-            if (mIcons.size() < mSlots.size()) {
-                mIcons.add(null);
-            }
+            mIcons.add(null);
         }
     }
 
@@ -43,10 +40,10 @@ public class StatusBarIconList {
                 return i;
             }
         }
-        // Auto insert new items at the beginning.
-        mSlots.add(0, slot);
-        mIcons.add(0, null);
-        return 0;
+        // Auto insert new items at the end.
+        mSlots.add(slot);
+        mIcons.add(null);
+        return N;
     }
 
     public int size() {

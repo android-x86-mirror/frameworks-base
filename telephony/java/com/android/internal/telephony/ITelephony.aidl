@@ -528,6 +528,12 @@ interface ITelephony {
      */
     void setCellInfoListRate(int rateInMillis);
 
+
+    /**
+     * Return if the current radio is LTE on GSM
+     */
+    int getLteOnGsmMode();
+
     /**
      * get default sim
      * @return sim id
@@ -544,6 +550,16 @@ interface ITelephony {
      * @return an IccOpenLogicalChannelResponse object.
      */
     IccOpenLogicalChannelResponse iccOpenLogicalChannel(int subId, String AID);
+
+    /**
+     * Opens a logical channel to the ICC card for a particular subID
+     *
+     * @param subId user preferred subId.
+     * @param p2 P2 parameter
+     * @param AID Application id. See ETSI 102.221 and 101.220
+     */
+    IccOpenLogicalChannelResponse iccOpenLogicalChannelWithP2(int subId,
+        String AID, byte p2);
 
     /**
      * Closes a previously opened logical channel to the ICC card.
@@ -972,6 +988,12 @@ interface ITelephony {
      */
     boolean isWifiCallingAvailable();
 
+    /*
+     * Returns the Status of VOWIFI calling
+     * using subId
+     */
+    boolean isVoWifiCallingAvailableForSubscriber(int subId);
+
     /**
      * Returns the Status of Volte
      */
@@ -981,6 +1003,12 @@ interface ITelephony {
      * Returns the Status of VT (video telephony)
      */
     boolean isVideoTelephonyAvailable();
+
+    /**
+     * Returns the Status of Video telephony wifi calling
+     * using subId
+     */
+    boolean isVideoTelephonyWifiCallingAvailableForSubscriber(int subId);
 
     /**
       * Returns the unique device ID of phone, for example, the IMEI for
@@ -1067,4 +1095,10 @@ interface ITelephony {
      * Returns a list of packages that have carrier privileges.
      */
     List<String> getPackagesWithCarrierPrivileges();
+
+    /**
+     * Get ATR (Answer To Reset; as per ISO/IEC 7816-4) from SIM card
+     * for a particular subId.
+     */
+    byte[] getAtr(int subId);
 }

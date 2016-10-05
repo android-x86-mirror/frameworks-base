@@ -40,7 +40,7 @@ LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res \
     frameworks/base/packages/SystemUI/res \
     frameworks/base/packages/Keyguard/res
 
-LOCAL_JAVA_LIBRARIES := android.test.runner telephony-common
+LOCAL_JAVA_LIBRARIES := android.test.runner telephony-common telephony-ext
 
 LOCAL_PACKAGE_NAME := SystemUITests
 
@@ -52,6 +52,8 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
     android-support-v7-appcompat \
     android-support-v14-preference \
     android-support-v17-leanback \
+    android-support-v7-palette \
+    android-support-v4 \
     SystemUI-proto-tags
 
 # sign this with platform cert, so this test is allowed to inject key events into

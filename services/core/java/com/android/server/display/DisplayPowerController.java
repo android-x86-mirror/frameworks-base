@@ -19,6 +19,7 @@ package com.android.server.display;
 import com.android.internal.app.IBatteryStats;
 import com.android.server.LocalServices;
 import com.android.server.am.BatteryStatsService;
+import com.android.server.lights.LightsManager;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
@@ -122,6 +123,9 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
 
     // Battery stats.
     private final IBatteryStats mBatteryStats;
+
+    // The lights service.
+    private final LightsManager mLights;
 
     // The sensor manager.
     private final SensorManager mSensorManager;
@@ -264,6 +268,7 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
         mCallbacks = callbacks;
 
         mBatteryStats = BatteryStatsService.getService();
+        mLights = LocalServices.getService(LightsManager.class);
         mSensorManager = sensorManager;
         mWindowManagerPolicy = LocalServices.getService(WindowManagerPolicy.class);
         mBlanker = blanker;
@@ -312,6 +317,8 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
                 com.android.internal.R.integer.config_autoBrightnessLightSensorRate);
         long brighteningLightDebounce = resources.getInteger(
                 com.android.internal.R.integer.config_autoBrightnessBrighteningLightDebounce);
+        long brighteningLightFastDebounce = resources.getInteger(
+                com.android.internal.R.integer.config_autoBrightnessBrighteningLightFastDebounce);
         long darkeningLightDebounce = resources.getInteger(
                 com.android.internal.R.integer.config_autoBrightnessDarkeningLightDebounce);
         boolean autoBrightnessResetAmbientLuxAfterWarmUp = resources.getBoolean(
@@ -357,8 +364,8 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
                         handler.getLooper(), sensorManager, screenAutoBrightnessSpline,
                         lightSensorWarmUpTimeConfig, screenBrightnessRangeMinimum,
                         mScreenBrightnessRangeMaximum, dozeScaleFactor, lightSensorRate,
-                        brighteningLightDebounce, darkeningLightDebounce,
-                        autoBrightnessResetAmbientLuxAfterWarmUp,
+                        brighteningLightDebounce, brighteningLightFastDebounce,
+                        darkeningLightDebounce, autoBrightnessResetAmbientLuxAfterWarmUp,
                         ambientLightHorizon, autoBrightnessAdjustmentMaxGamma);
             }
         }
@@ -606,6 +613,14 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
         // Use zero brightness when screen is off.
         if (state == Display.STATE_OFF) {
             brightness = PowerManager.BRIGHTNESS_OFF;
+            mLights.getLight(LightsManager.LIGHT_ID_BUTTONS).setBrightness(brightness);
+            mLights.getLight(LightsManager.LIGHT_ID_KEYBOARD).setBrightness(brightness);
+        }
+
+        // Disable button lights when dozing
+        if (state == Display.STATE_DOZE || state == Display.STATE_DOZE_SUSPEND) {
+            mLights.getLight(LightsManager.LIGHT_ID_BUTTONS).setBrightness(PowerManager.BRIGHTNESS_OFF);
+            mLights.getLight(LightsManager.LIGHT_ID_KEYBOARD).setBrightness(PowerManager.BRIGHTNESS_OFF);
         }
 
         // Configure auto-brightness.

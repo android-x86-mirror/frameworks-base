@@ -46,7 +46,15 @@
         android:paddingEnd="8dp"
         android:orientation="horizontal"
         >
-
+        <TextView android:id="@+id/network_label"
+            android:textSize="14dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:maxLength="@integer/config_operatorNameMaxLength"
+            android:gravity="center_vertical"
+            android:singleLine="true"
+            android:visibility="gone"
+            />
         <!-- The alpha of this area is controlled from both PhoneStatusBarTransitions and
              PhoneStatusBar (DISABLE_NOTIFICATION_ICONS). -->
         <com.android.systemui.statusbar.AlphaOptimizedFrameLayout
@@ -77,4 +85,22 @@
         </com.android.keyguard.AlphaOptimizedLinearLayout>
     </LinearLayout>
 
+    <com.android.keyguard.AlphaOptimizedLinearLayout
+        android:id="@+id/center_clock_layout"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <com.android.systemui.statusbar.policy.Clock
+            android:id="@+id/center_clock"
+            android:textAppearance="@style/TextAppearance.StatusBar.Clock"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:singleLine="true"
+            android:gravity="center"
+            android:visibility="gone"
+            />
+    </com.android.keyguard.AlphaOptimizedLinearLayout>
 </com.android.systemui.statusbar.phone.PhoneStatusBarView>

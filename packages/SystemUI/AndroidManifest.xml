@@ -165,6 +165,13 @@
     <!-- the ability to rename notifications posted by other apps -->
     <uses-permission android:name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" />
 
+    <!-- Weather -->
+    <uses-permission android:name="com.cyanogenmod.lockclock.permission.READ_WEATHER" />
+
+    <!-- manage cmsettings -->
+    <uses-permission android:name="cyanogenmod.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="cyanogenmod.permission.WRITE_SECURE_SETTINGS" />
+
     <application
         android:name=".SystemUIApplication"
         android:persistent="true"
@@ -227,7 +234,6 @@
         </receiver>
 
         <activity android:name=".tuner.TunerActivity"
-                  android:enabled="false"
                   android:icon="@drawable/tuner"
                   android:theme="@style/TunerSettings"
                   android:label="@string/system_ui_tuner"
@@ -489,6 +495,20 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SHOW_BRIGHTNESS_DIALOG" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".settings.NotificationBrightnessDialog"
+            android:label="@string/quick_settings_brightness_dialog_title"
+            android:theme="@android:style/Theme.DeviceDefault.Dialog"
+            android:finishOnCloseSystemDialogs="true"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SHOW_NOTIFICATION_BRIGHTNESS_DIALOG" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

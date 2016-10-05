@@ -268,6 +268,14 @@ public abstract class Conference extends Conferenceable {
     public void onSeparate(Connection connection) {}
 
     /**
+     * Invoked when the conference adds a participant to the conference call.
+     *
+     * @param participant The participant to be added with conference call.
+     * @hide
+     */
+    public void onAddParticipant(String participant) {}
+
+    /**
      * Invoked when the specified {@link Connection} should merged with the conference call.
      *
      * @param connection The {@code Connection} to merge.
@@ -648,9 +656,11 @@ public abstract class Conference extends Conferenceable {
     @Override
     public String toString() {
         return String.format(Locale.US,
-                "[State: %s,Capabilites: %s, VideoState: %s, VideoProvider: %s, ThisObject %s]",
+                "[State: %s, Capabilites: %s, Properties: %s, " +
+                "VideoState: %s, VideoProvider: %s, ThisObject %s]",
                 Connection.stateToString(mState),
                 Call.Details.capabilitiesToString(mConnectionCapabilities),
+                Call.Details.propertiesToString(mConnectionProperties),
                 getVideoState(),
                 getVideoProvider(),
                 super.toString());

@@ -99,6 +99,7 @@ import android.os.UserManager;
 import android.provider.Settings;
 import android.security.Credentials;
 import android.security.KeyStore;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.ArraySet;
@@ -141,6 +142,7 @@ import com.android.server.net.LockdownVpnTracker;
 
 import com.google.android.collect.Lists;
 
+import cyanogenmod.providers.CMSettings;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -164,6 +166,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.Random;
 
 /**
  * @hide
@@ -654,12 +657,22 @@ public class ConnectivityService extends IConnectivityManager.Stub
         mTrackerHandler = new NetworkStateTrackerHandler(mHandlerThread.getLooper());
 
         // setup our unique device name
+        // either to (in order): current net.hostname
+        //                       DEVICE_HOSTNAME
+        //                       android-ANDROID_ID
+        //                       android-r-RANDOM_NUMBER
         if (TextUtils.isEmpty(SystemProperties.get("net.hostname"))) {
+            String hostname = CMSettings.Secure.getString(context.getContentResolver(),
+                    CMSettings.Secure.DEVICE_HOSTNAME);
             String id = Settings.Secure.getString(context.getContentResolver(),
                     Settings.Secure.ANDROID_ID);
-            if (id != null && id.length() > 0) {
+            if (!TextUtils.isEmpty(hostname)) {
+                SystemProperties.set("net.hostname", hostname);
+            } else if (!TextUtils.isEmpty(id)) {
                 String name = new String("android-").concat(id);
                 SystemProperties.set("net.hostname", name);
+            } else {
+                SystemProperties.set("net.hostname", "android-r-" + new Random().nextInt());
             }
         }
 
@@ -3511,7 +3524,8 @@ public class ConnectivityService extends IConnectivityManager.Stub
                         title = r.getString(R.string.network_available_sign_in, 0);
                         // TODO: Change this to pull from NetworkInfo once a printable
                         // name has been added to it
-                        details = mTelephonyManager.getNetworkOperatorName();
+                        details = mTelephonyManager.getNetworkOperatorName(
+                             SubscriptionManager.getDefaultDataSubscriptionId());
                         icon = R.drawable.stat_notify_rssi_in_range;
                         break;
                     default:

@@ -53,6 +53,7 @@ import android.os.Message;
 import android.os.Parcel;
 import android.os.ResultReceiver;
 import android.os.SystemProperties;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.telephony.CarrierConfigManager;
@@ -70,6 +71,7 @@ import com.android.internal.util.Protocol;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 import com.android.server.IoThread;
+import com.android.server.NetPluginDelegate;
 import com.android.server.net.BaseNetworkObserver;
 
 import java.io.FileDescriptor;
@@ -220,10 +222,16 @@ public class Tethering extends BaseNetworkObserver {
     void updateConfiguration() {
         String[] tetherableUsbRegexs = mContext.getResources().getStringArray(
                 com.android.internal.R.array.config_tether_usb_regexs);
-        String[] tetherableWifiRegexs = mContext.getResources().getStringArray(
-                com.android.internal.R.array.config_tether_wifi_regexs);
+        String[] tetherableWifiRegexs;
         String[] tetherableBluetoothRegexs = mContext.getResources().getStringArray(
                 com.android.internal.R.array.config_tether_bluetooth_regexs);
+
+        if (SystemProperties.getInt("persist.fst.rate.upgrade.en", 0) == 1) {
+            tetherableWifiRegexs = new String[] {"bond0"};
+        } else {
+            tetherableWifiRegexs = mContext.getResources().getStringArray(
+                com.android.internal.R.array.config_tether_wifi_regexs);
+        }
 
         int ifaceTypes[] = mContext.getResources().getIntArray(
                 com.android.internal.R.array.config_tether_upstream_types);
@@ -250,6 +258,8 @@ public class Tethering extends BaseNetworkObserver {
         if (VDBG) Log.d(TAG, "interfaceStatusChanged " + iface + ", " + up);
         boolean found = false;
         boolean usb = false;
+        WifiManager mWifiManager =
+           (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         synchronized (mPublicSync) {
             if (isWifi(iface)) {
                 found = true;
@@ -269,8 +279,8 @@ public class Tethering extends BaseNetworkObserver {
                     sm.start();
                 }
             } else {
-                if (isUsb(iface)) {
-                    // ignore usb0 down after enabling RNDIS
+                if (isUsb(iface) || isBluetooth(iface) || isWifi(iface) ) {
+                    // ignore usb0, bt-pan or wlan0 down after enabling tethering
                     // we will handle disconnect in interfaceRemoved instead
                     if (VDBG) Log.d(TAG, "ignore interface down for " + iface);
                 } else if (isBluetooth(iface)) {
@@ -698,6 +708,11 @@ public class Tethering extends BaseNetworkObserver {
             } else {
                 /* We now have a status bar icon for WifiTethering, so drop the notification */
                 clearTetheredNotification();
+                if (mContext.getResources().getBoolean(
+                        com.android.internal.R.bool
+                        .config_regional_hotspot_show_notification_when_turn_on)) {
+                    showTetheredNotification(com.android.internal.R.drawable.stat_sys_tether_wifi);
+                }
             }
         } else if (bluetoothTethered) {
             showTetheredNotification(com.android.internal.R.drawable.stat_sys_tether_bluetooth);
@@ -916,6 +931,10 @@ public class Tethering extends BaseNetworkObserver {
         if (tm != null) {
             secureSetting = tm.getTetherApnRequired();
         }
+        // Allow override of TETHER_DUN_REQUIRED via prop
+        int prop = SystemProperties.getInt("persist.sys.dun.override", -1);
+        secureSetting = ((prop < 3) && (prop >= 0)) ? prop : secureSetting;
+
         synchronized (mPublicSync) {
             // 2 = not set, 0 = DUN not required, 1 = DUN required
             if (secureSetting != 2) {
@@ -1728,6 +1747,8 @@ public class Tethering extends BaseNetworkObserver {
                 }
 
                 if (upType != ConnectivityManager.TYPE_NONE) {
+                    Network network = getConnectivityManager().getNetworkForType(upType);
+                    NetPluginDelegate.setUpstream(network);
                     LinkProperties linkProperties =
                             getConnectivityManager().getLinkProperties(upType);
                     if (linkProperties != null) {
@@ -1746,7 +1767,6 @@ public class Tethering extends BaseNetworkObserver {
                     }
 
                     if (iface != null) {
-                        Network network = getConnectivityManager().getNetworkForType(upType);
                         if (network == null) {
                             Log.e(TAG, "No Network for upstream type " + upType + "!");
                         }

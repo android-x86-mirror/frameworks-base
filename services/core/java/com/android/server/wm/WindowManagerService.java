@@ -139,6 +139,8 @@ import com.android.server.LocalServices;
 import com.android.server.UiThread;
 import com.android.server.Watchdog;
 import com.android.server.input.InputManagerService;
+import com.android.server.lights.Light;
+import com.android.server.lights.LightsManager;
 import com.android.server.policy.PhoneWindowManager;
 import com.android.server.power.ShutdownThread;
 
@@ -347,6 +349,8 @@ public class WindowManagerService extends IWindowManager.Stub
     private static final int ANIMATION_DURATION_SCALE = 2;
 
     final private KeyguardDisableHandler mKeyguardDisableHandler;
+
+    private final int mSfHwRotation;
 
     final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -1045,6 +1049,9 @@ public class WindowManagerService extends IWindowManager.Stub
         } finally {
             SurfaceControl.closeTransaction();
         }
+
+        // Load hardware rotation from prop
+        mSfHwRotation = android.os.SystemProperties.getInt("ro.sf.hwrotation",0) / 90;
 
         showEmulatorDisplayOverlayIfNeeded();
     }
@@ -5903,6 +5910,17 @@ public class WindowManagerService extends IWindowManager.Stub
 
         mPolicy.enableScreenAfterBoot();
 
+        // clear any intrusive lighting which may still be on from the
+        // crypto landing ui
+        LightsManager lm = LocalServices.getService(LightsManager.class);
+        Light batteryLight = lm.getLight(LightsManager.LIGHT_ID_BATTERY);
+        Light notifLight = lm.getLight(LightsManager.LIGHT_ID_NOTIFICATIONS);
+        if (batteryLight != null) {
+            batteryLight.turnOff();
+        }
+        if (notifLight != null) {
+            notifLight.turnOff();
+        }
         // Make sure the last requested orientation has been applied.
         updateRotationUnchecked(false, false);
     }
@@ -6381,6 +6399,8 @@ public class WindowManagerService extends IWindowManager.Stub
 
             // The screenshot API does not apply the current screen rotation.
             int rot = getDefaultDisplayContentLocked().getDisplay().getRotation();
+            // Allow for abnormal hardware orientation
+            rot = (rot + mSfHwRotation) % 4;
 
             if (rot == Surface.ROTATION_90 || rot == Surface.ROTATION_270) {
                 rot = (rot == Surface.ROTATION_90) ? Surface.ROTATION_270 : Surface.ROTATION_90;
@@ -10064,6 +10084,11 @@ public class WindowManagerService extends IWindowManager.Stub
     @Override
     public boolean hasNavigationBar() {
         return mPolicy.hasNavigationBar();
+    }
+
+    @Override 
+    public boolean needsNavigationBar() {
+        return mPolicy.needsNavigationBar();
     }
 
     @Override

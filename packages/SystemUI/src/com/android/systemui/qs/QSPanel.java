@@ -22,6 +22,8 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Message;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,14 +38,18 @@ import com.android.systemui.qs.QSTile.Host.Callback;
 import com.android.systemui.qs.customize.QSCustomizer;
 import com.android.systemui.qs.external.CustomTile;
 import com.android.systemui.settings.BrightnessController;
+import com.android.systemui.settings.SimSwitchController;
 import com.android.systemui.settings.ToggleSlider;
 import com.android.systemui.statusbar.phone.QSTileHost;
 import com.android.systemui.statusbar.policy.BrightnessMirrorController;
+import com.android.systemui.statusbar.policy.MobileSignalController;
 import com.android.systemui.tuner.TunerService;
 import com.android.systemui.tuner.TunerService.Tunable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+
+import cyanogenmod.providers.CMSettings;
 
 /** View that represents the quick settings tile panel. **/
 public class QSPanel extends LinearLayout implements Tunable, Callback {
@@ -53,6 +59,7 @@ public class QSPanel extends LinearLayout implements Tunable, Callback {
     protected final Context mContext;
     protected final ArrayList<TileRecord> mRecords = new ArrayList<TileRecord>();
     protected final View mBrightnessView;
+    protected View mSimSwitcherView = null;
     private final H mHandler = new H();
 
     private int mPanelPaddingBottom;
@@ -62,6 +69,7 @@ public class QSPanel extends LinearLayout implements Tunable, Callback {
 
     private Callback mCallback;
     private BrightnessController mBrightnessController;
+    private SimSwitchController mSimSwitchController;
     protected QSTileHost mHost;
 
     protected QSFooter mFooter;
@@ -83,6 +91,13 @@ public class QSPanel extends LinearLayout implements Tunable, Callback {
         mContext = context;
 
         setOrientation(VERTICAL);
+
+        if(MobileSignalController.isCarrierOneSupported()) {
+            mSimSwitcherView = LayoutInflater.from(context).inflate(
+                R.layout.sim_switcher, this, false);
+            addView(mSimSwitcherView);
+            mSimSwitchController = new SimSwitchController(getContext(), mSimSwitcherView, this);
+        }
 
         mBrightnessView = LayoutInflater.from(context).inflate(
                 R.layout.quick_settings_brightness_dialog, this, false);
