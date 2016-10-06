@@ -43,14 +43,8 @@ public class MediaFile {
     public static final int FILE_TYPE_AAC     = 8;
     public static final int FILE_TYPE_MKA     = 9;
     public static final int FILE_TYPE_FLAC    = 10;
-    public static final int FILE_TYPE_3GPA    = 11;
-    public static final int FILE_TYPE_AC3     = 12;
-    public static final int FILE_TYPE_APE     = 13;
-    public static final int FILE_TYPE_WEBMA   = 14;
-    public static final int FILE_TYPE_PCM     = 15;
-    public static final int FILE_TYPE_DTS     = 16;
     private static final int FIRST_AUDIO_FILE_TYPE = FILE_TYPE_MP3;
-    private static final int LAST_AUDIO_FILE_TYPE = FILE_TYPE_DTS;
+    private static final int LAST_AUDIO_FILE_TYPE = FILE_TYPE_FLAC;
 
     // More audio file types
     public static final int FILE_TYPE_DTS   = 210;
@@ -83,10 +77,8 @@ public class MediaFile {
     public static final int FILE_TYPE_MP2TS   = 28;
     public static final int FILE_TYPE_AVI     = 29;
     public static final int FILE_TYPE_WEBM    = 30;
-    public static final int FILE_TYPE_DIVX    = 31;
-    public static final int FILE_TYPE_FLV     = 32;
-    public static final int FILE_TYPE_RV      = 33;
-    public static final int FILE_TYPE_VC1     = 34;
+    public static final int FILE_TYPE_RV      = 31;
+    public static final int FILE_TYPE_VC1     = 32;
     private static final int FIRST_VIDEO_FILE_TYPE = FILE_TYPE_MP4;
     private static final int LAST_VIDEO_FILE_TYPE = FILE_TYPE_VC1;
 
