@@ -121,6 +121,8 @@ import com.android.internal.app.WindowDecorActionBar;
 import com.android.internal.policy.PhoneWindow;
 import com.android.internal.policy.DecorView;
 
+import org.android_x86.analytics.AnalyticsHelper;
+
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.lang.annotation.Retention;
@@ -752,6 +754,7 @@ public class Activity extends ContextThemeWrapper
     boolean mFinished;
     boolean mStartedActivity;
     private boolean mDestroyed;
+    private boolean mAppsStatistics;
     private boolean mDoReportFullyDrawn = true;
     /** true if the activity is going through a transient pause */
     /*package*/ boolean mTemporaryPause = false;
@@ -964,6 +967,7 @@ public class Activity extends ContextThemeWrapper
             mVoiceInteractor.attachActivity(this);
         }
         mCalled = true;
+        mAppsStatistics = SystemProperties.getBoolean("persist.sys.apps_statistics", false);
     }
 
     /**
@@ -1188,6 +1192,12 @@ public class Activity extends ContextThemeWrapper
 
         mFragments.doLoaderStart();
 
+        // region @android-x86-analytics
+        // screen view
+        if (mAppsStatistics) {
+            AnalyticsHelper.hitScreen(this);
+        }
+        // endregion
         getApplication().dispatchActivityStarted(this);
     }
 
