@@ -50,7 +50,7 @@ void GlesErrorCheckWrapper::assertNoErrors(const char* apicall) {
             lastErrorName = "UNKNOWN";
         }
     }
-    LOG_ALWAYS_FATAL_IF(lastError != GL_NO_ERROR,
+    ALOGE_IF(lastError != GL_NO_ERROR,
             "%s error! %s (0x%x)", apicall, lastErrorName, lastError);
 }
 
